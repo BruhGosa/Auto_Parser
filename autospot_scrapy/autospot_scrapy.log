@@ -1,0 +1,110 @@
+2025-03-25 14:45:24 [scrapy.utils.log] INFO: Scrapy 2.12.0 started (bot: autospot_scrapy)
+2025-03-25 14:45:24 [scrapy.utils.log] INFO: Versions: lxml 5.3.1.0, libxml2 2.11.7, cssselect 1.3.0, parsel 1.10.0, w3lib 2.3.1, Twisted 24.11.0, Python 3.13.2 (tags/v3.13.2:4f8bb39, Feb  4 2025, 15:23:48) [MSC v.1942 64 bit (AMD64)], pyOpenSSL 25.0.0 (OpenSSL 3.4.1 11 Feb 2025), cryptography 44.0.2, Platform Windows-11-10.0.22631-SP0
+2025-03-25 14:45:24 [scrapy.addons] INFO: Enabled addons:
+[]
+2025-03-25 14:45:24 [scrapy.extensions.telnet] INFO: Telnet Password: a307e5f49b7f0881
+2025-03-25 14:45:24 [scrapy.middleware] INFO: Enabled extensions:
+['scrapy.extensions.corestats.CoreStats',
+ 'scrapy.extensions.telnet.TelnetConsole',
+ 'scrapy.extensions.logstats.LogStats']
+2025-03-25 14:45:24 [scrapy.crawler] INFO: Overridden settings:
+{'BOT_NAME': 'autospot_scrapy',
+ 'CONCURRENT_REQUESTS': 8,
+ 'DOWNLOAD_DELAY': 2,
+ 'DOWNLOAD_TIMEOUT': 30,
+ 'FEED_EXPORT_ENCODING': 'utf-8',
+ 'HTTPCACHE_ENABLED': True,
+ 'HTTPCACHE_EXPIRATION_SECS': 3600,
+ 'HTTPCACHE_IGNORE_HTTP_CODES': [500, 502, 503, 504, 408, 429],
+ 'LOG_FILE': 'autospot_scrapy.log',
+ 'LOG_LEVEL': 'INFO',
+ 'NEWSPIDER_MODULE': 'autospot_scrapy.spiders',
+ 'RETRY_HTTP_CODES': [500, 502, 503, 504, 408, 429],
+ 'RETRY_TIMES': 5,
+ 'SPIDER_MODULES': ['autospot_scrapy.spiders'],
+ 'TWISTED_REACTOR': 'twisted.internet.asyncioreactor.AsyncioSelectorReactor',
+ 'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+2025-03-25 14:45:25 [scrapy.middleware] INFO: Enabled downloader middlewares:
+['scrapy.downloadermiddlewares.offsite.OffsiteMiddleware',
+ 'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware',
+ 'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware',
+ 'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware',
+ 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware',
+ 'autospot_scrapy.middlewares.TokenMiddleware',
+ 'autospot_scrapy.middlewares.RandomUserAgentMiddleware',
+ 'autospot_scrapy.middlewares.AutospotScrapyDownloaderMiddleware',
+ 'scrapy.downloadermiddlewares.retry.RetryMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.MetaRefreshMiddleware',
+ 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware',
+ 'scrapy.downloadermiddlewares.cookies.CookiesMiddleware',
+ 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware',
+ 'scrapy.downloadermiddlewares.stats.DownloaderStats',
+ 'scrapy.downloadermiddlewares.httpcache.HttpCacheMiddleware']
+2025-03-25 14:45:25 [scrapy.middleware] INFO: Enabled spider middlewares:
+['scrapy.spidermiddlewares.httperror.HttpErrorMiddleware',
+ 'scrapy.spidermiddlewares.referer.RefererMiddleware',
+ 'scrapy.spidermiddlewares.urllength.UrlLengthMiddleware',
+ 'scrapy.spidermiddlewares.depth.DepthMiddleware']
+2025-03-25 14:45:25 [scrapy.middleware] INFO: Enabled item pipelines:
+['autospot_scrapy.pipelines.AutospotScrapyPipeline']
+2025-03-25 14:45:25 [scrapy.core.engine] INFO: Spider opened
+2025-03-25 14:45:25 [autospot_scrapy.pipelines] INFO: Создаем новый файл auto_data.json
+2025-03-25 14:45:25 [scrapy.extensions.logstats] INFO: Crawled 0 pages (at 0 pages/min), scraped 0 items (at 0 items/min)
+2025-03-25 14:45:25 [autospot_scrapy.middlewares] INFO: TokenMiddleware инициализирован
+2025-03-25 14:45:25 [autospot] INFO: Spider opened: autospot
+2025-03-25 14:45:25 [scrapy.extensions.telnet] INFO: Telnet console listening on 127.0.0.1:6023
+2025-03-25 14:45:25 [autospot_scrapy.middlewares] INFO: Запрос токена. Принудительное обновление: False
+2025-03-25 14:45:25 [autospot_scrapy.middlewares] INFO: Запрашиваем новый токен
+2025-03-25 14:45:26 [autospot_scrapy.middlewares] INFO: Найден скрипт serverApp-state, извлекаем данные
+2025-03-25 14:45:26 [autospot_scrapy.middlewares] INFO: Получен новый токен
+2025-03-25 14:45:26 [autospot_scrapy.middlewares] INFO: Добавлен токен к запросу: https://autospot.ru/used-car/?sort=-views_count&limit=12&page=1
+2025-03-25 14:45:28 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка страницы 1 из 2 (подержанные авто)
+2025-03-25 14:45:28 [autospot_scrapy.spiders.autospot_spider] INFO: Обнаружено 680 страниц подержанных авто
+2025-03-25 14:45:28 [autospot_scrapy.spiders.autospot_spider] INFO: Найдено 12 подержанных автомобилей на странице 1
+2025-03-25 14:45:28 [autospot_scrapy.middlewares] INFO: Запрос токена. Принудительное обновление: False
+2025-03-25 14:45:28 [autospot_scrapy.middlewares] INFO: Используем существующий токен
+2025-03-25 14:45:28 [autospot_scrapy.middlewares] INFO: Добавлен токен к запросу: https://autospot.ru/used-car/?sort=-views_count&limit=12&page=2
+2025-03-25 14:45:32 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/ford/mondeo/2010/sw/used/612883/
+2025-03-25 14:45:32 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Ford Mondeo
+2025-03-25 14:45:35 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка страницы 2 из 680 (подержанные авто)
+2025-03-25 14:45:35 [autospot_scrapy.spiders.autospot_spider] INFO: Обнаружено 680 страниц подержанных авто
+2025-03-25 14:45:35 [autospot_scrapy.spiders.autospot_spider] INFO: Найдено 12 подержанных автомобилей на странице 2
+2025-03-25 14:45:38 [autospot_scrapy.middlewares] INFO: Запрос токена. Принудительное обновление: False
+2025-03-25 14:45:38 [autospot_scrapy.middlewares] INFO: Используем существующий токен
+2025-03-25 14:45:38 [autospot_scrapy.middlewares] INFO: Добавлен токен к запросу: https://autospot.ru/used-car/?sort=-views_count&limit=12&page=3
+2025-03-25 14:45:38 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/nissan/qashqai/2017/suv/used/575225/
+2025-03-25 14:45:38 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Nissan Qashqai
+2025-03-25 14:45:43 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/kia/optima_new/2018/sedan/used/547670/
+2025-03-25 14:45:43 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: KIA Optima
+2025-03-25 14:45:44 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/ford/explorer/2017/suv/used/548090/
+2025-03-25 14:45:44 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Ford Explorer
+2025-03-25 14:45:46 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/mazda/cx-5/2011/suv/used/600495/
+2025-03-25 14:45:47 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Mazda CX-5
+2025-03-25 14:45:49 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/volkswagen/amarok/2016/pickup/used/458793/
+2025-03-25 14:45:49 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Volkswagen Amarok
+2025-03-25 14:45:51 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/mazda/cx-5/2011/suv/used/570444/
+2025-03-25 14:45:51 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Mazda CX-5
+2025-03-25 14:45:55 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/volkswagen/passat/2011/sedan/used/600639/
+2025-03-25 14:45:55 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Volkswagen Passat
+2025-03-25 14:45:56 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/kia/optima_new/2018/sedan/used/543131/
+2025-03-25 14:45:56 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: KIA Optima
+2025-03-25 14:45:56 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка страницы 3 из 680 (подержанные авто)
+2025-03-25 14:45:56 [autospot_scrapy.spiders.autospot_spider] INFO: Обнаружено 680 страниц подержанных авто
+2025-03-25 14:45:56 [autospot_scrapy.spiders.autospot_spider] INFO: Найдено 12 подержанных автомобилей на странице 3
+2025-03-25 14:46:00 [autospot_scrapy.middlewares] INFO: Запрос токена. Принудительное обновление: False
+2025-03-25 14:46:00 [autospot_scrapy.middlewares] INFO: Используем существующий токен
+2025-03-25 14:46:00 [autospot_scrapy.middlewares] INFO: Добавлен токен к запросу: https://autospot.ru/used-car/?sort=-views_count&limit=12&page=4
+2025-03-25 14:46:01 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/porsche/cayenne/2010/suv/used/530100/
+2025-03-25 14:46:01 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Porsche Cayenne
+2025-03-25 14:46:02 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/nissan/qashqai/2017/suv/used/558849/
+2025-03-25 14:46:02 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Nissan Qashqai
+2025-03-25 14:46:04 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/renault/arkana/2019/suv/used/533125/
+2025-03-25 14:46:04 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Renault Arkana
+2025-03-25 14:46:06 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/nissan/juke/2014/suv/used/281304/
+2025-03-25 14:46:06 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: Nissan Juke
+2025-03-25 14:46:09 [scrapy.crawler] INFO: Received SIGINT, shutting down gracefully. Send again to force 
+2025-03-25 14:46:09 [scrapy.core.engine] INFO: Closing spider (shutdown)
+2025-03-25 14:46:10 [autospot_scrapy.spiders.autospot_spider] INFO: Обработка подержанного автомобиля: https://autospot.ru/brands/kia/optima_new/2018/sedan/used/581239/
+2025-03-25 14:46:10 [autospot_scrapy.pipelines] INFO: Добавлен автомобиль: KIA Optima
+2025-03-25 14:46:11 [scrapy.crawler] INFO: Received SIGINT twice, forcing unclean shutdown
