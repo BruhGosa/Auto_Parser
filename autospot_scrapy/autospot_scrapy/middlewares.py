@@ -62,24 +62,12 @@ class TokenMiddleware:
         if self.token_info["token"] and not force_refresh and self.token_info["timestamp"]:
             # Проверяем, прошло ли менее 23 часов с момента получения токена
             token_age = current_time - self.token_info["timestamp"]
-            if token_age.total_seconds() < 23 * 3600:  # 23 часа в секундах
+            if token_age.total_seconds() < 23 * 3600: 
                 logger.info("Using existing token")
                 return self.token_info["token"]
         
         # Если токен нужно обновить, делаем запрос на главную страницу
         logger.info("Requesting new token")
-        
-        # Создаем новый запрос для получения токена
-        request = Request(
-            url='https://autospot.ru/',
-            headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-                'Accept': 'application/json, text/plain, */*',
-                'Origin': 'https://autospot.ru',
-                'Referer': 'https://autospot.ru/'
-            },
-            meta={'dont_process_token': True}
-        )
         
         # Выполняем запрос напрямую через requests
         import requests
