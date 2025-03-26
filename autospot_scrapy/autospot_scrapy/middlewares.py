@@ -17,11 +17,11 @@ from twisted.internet.error import TimeoutError
 from scrapy.http import HtmlResponse
 from scrapy import Request
 import random
+import requests
 
 logger = logging.getLogger(__name__)
 
 class TokenMiddleware:
-    # Глобальная переменная для хранения токена и времени его получения
     token_info = {
         "token": None,
         "timestamp": None
@@ -37,40 +37,29 @@ class TokenMiddleware:
         logger.info("TokenMiddleware initialized")
     
     def process_request(self, request, spider):
-        # Пропускаем запросы для получения токена
         if 'dont_process_token' in request.meta:
             return None
             
-        # Добавляем токен к запросу, если он нужен
-        if 'needs_token' in request.meta and request.meta['needs_token']:
-            token = self.get_bearer_token(spider)
-            if token:
-                request.headers['Authorization'] = f'Bearer {token}'
-                logger.info("Added token to request: %s", request.url)
-            else:
-                logger.error("Failed to get token for request")
-        
+        if not request.meta.get('needs_token'):
+            return None
+            
+        token = self.get_bearer_token(spider)
+        if not token:
+            logger.error("Failed to get token for request")
+            return None
+            
+        request.headers['Authorization'] = f'Bearer {token}'
+        logger.info("Added token to request: %s", request.url)
         return None
     
     def get_bearer_token(self, spider, force_refresh=False):
-        logger.info("Token request. Force refresh: %s", force_refresh)
-        
-        # Проверяем, нужно ли обновить токен
         current_time = datetime.datetime.now()
         
-        # Если токен существует и не требуется принудительное обновление, проверяем его срок действия
-        if self.token_info["token"] and not force_refresh and self.token_info["timestamp"]:
-            # Проверяем, прошло ли менее 23 часов с момента получения токена
+        if not force_refresh and self.token_info["token"] and self.token_info["timestamp"]:
             token_age = current_time - self.token_info["timestamp"]
-            if token_age.total_seconds() < 23 * 3600: 
-                logger.info("Using existing token")
+            if token_age.total_seconds() < 23 * 3600:
                 return self.token_info["token"]
         
-        # Если токен нужно обновить, делаем запрос на главную страницу
-        logger.info("Requesting new token")
-        
-        # Выполняем запрос напрямую через requests
-        import requests
         try:
             response = requests.get(
                 'https://autospot.ru/',
@@ -83,48 +72,39 @@ class TokenMiddleware:
                 timeout=30
             )
             
-            if response.status_code == 200:
-                try:
-                    # Ищем скрипт с id="serverApp-state"
-                    pattern = r'<script id="serverApp-state" type="application/json">(.*?)</script>'
-                    match = re.search(pattern, response.text)
-                    
-                    if match:
-                        logger.info("Found serverApp-state script, extracting data")
-                        data = json.loads(match.group(1))
-                        # Ищем ключ с oauth2/token
-                        token_key = next(
-                            (key for key in data.keys() 
-                            if 'api.autospot.ru/rest/oauth2/token' in key),
-                            None
-                        )
-                        
-                        if token_key and 'body' in data[token_key]:
-                            access_token = data[token_key]['body'].get('access_token')
-                            if access_token:
-                                # Сохраняем токен и время его получения
-                                self.token_info["token"] = access_token
-                                self.token_info["timestamp"] = current_time
-                                logger.info("Received new token")
-                                return access_token
-                            else:
-                                logger.warning("Token not found in data")
-                        else:
-                            logger.warning("Token key not found or 'body' missing")
-                    else:
-                        logger.warning("Script serverApp-state not found on page")
-                    
-                    logger.error("Failed to find token in serverApp-state")
-                    return None
-                    
-                except Exception as e:
-                    logger.exception("Error getting token: %s", e)
-                    return None
-            else:
+            if response.status_code != 200:
                 logger.error("Failed to get page for token extraction: %s", response.status_code)
                 return None
+                
+            pattern = r'<script id="serverApp-state" type="application/json">(.*?)</script>'
+            match = re.search(pattern, response.text)
+            if not match:
+                logger.warning("Script serverApp-state not found on page")
+                return None
+                
+            data = json.loads(match.group(1))
+            token_key = next(
+                (key for key in data.keys() 
+                if 'api.autospot.ru/rest/oauth2/token' in key),
+                None
+            )
+            
+            if not token_key or 'body' not in data[token_key]:
+                logger.warning("Token key not found or 'body' missing")
+                return None
+                
+            access_token = data[token_key]['body'].get('access_token')
+            if not access_token:
+                logger.warning("Token not found in data")
+                return None
+                
+            self.token_info["token"] = access_token
+            self.token_info["timestamp"] = current_time
+            logger.info("Received new token")
+            return access_token
+                
         except Exception as e:
-            logger.exception("Error executing request: %s", e)
+            logger.exception("Error getting token: %s", e)
             return None
 
 class RandomUserAgentMiddleware:

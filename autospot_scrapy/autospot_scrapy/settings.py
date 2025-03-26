@@ -7,6 +7,16 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import os
+from datetime import datetime
+
+# Создаем директории для логов и данных
+log_dir = 'logs'
+os.makedirs(log_dir, exist_ok=True)
+
+# Форматируем текущее время для имен файлов
+current_time = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
 BOT_NAME = "autospot_scrapy"
 
 SPIDER_MODULES = ["autospot_scrapy.spiders"]
@@ -17,7 +27,7 @@ ROBOTSTXT_OBEY = False
 
 # Настройка логирования
 LOG_LEVEL = 'INFO'
-LOG_FILE = 'autospot_scrapy.log'
+LOG_FILE = f'logs/{current_time}_autospot.log'
 LOG_FORMAT = '%(asctime)s [%(name)s] %(levelname)s: %(message)s'
 LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -37,17 +47,27 @@ DOWNLOAD_TIMEOUT = 30
 # Настройка User-Agent
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
 
-# Настройка middleware
+FAKEUSERAGENT_PROVIDERS = [
+    'scrapy_fake_useragent.providers.FakeUserAgentProvider',  # this is the first provider we'll try
+    'scrapy_fake_useragent.providers.FakerProvider',  # if FakeUserAgentProvider fails, we'll use faker to generate a user-agent string for us
+    'scrapy_fake_useragent.providers.FixedUserAgentProvider',  # fall back to USER_AGENT value
+]
+
 DOWNLOADER_MIDDLEWARES = {
-   'autospot_scrapy.middlewares.TokenMiddleware': 543,
-   'autospot_scrapy.middlewares.RandomUserAgentMiddleware': 545,
-   'autospot_scrapy.middlewares.AutospotScrapyDownloaderMiddleware': 550,
-   'scrapy.downloadermiddlewares.retry.RetryMiddleware': 560,
+    'autospot_scrapy.middlewares.TokenMiddleware': 543,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 560,
+    'scrapy_fake_useragent.middleware.RandomUserAgentMiddleware': 545,
 }
 
-# Настройка pipeline
-ITEM_PIPELINES = {
-    'autospot_scrapy.pipelines.AutospotScrapyPipeline': 300,
+# Настройка feeds
+FEEDS = {
+    'auto_data.json': {
+        'format': 'json',
+        'encoding': 'utf-8',
+        'indent': 2,
+        'ensure_ascii': False
+    }
 }
 
 # Настройка кэширования
@@ -60,12 +80,6 @@ HTTPCACHE_IGNORE_HTTP_CODES = [500, 502, 503, 504, 408, 429]
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 #SPIDER_MIDDLEWARES = {
 #    "autospot_scrapy.middlewares.AutospotScrapySpiderMiddleware": 543,
-#}
-
-# Enable or disable downloader middlewares
-# See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "autospot_scrapy.middlewares.AutospotScrapyDownloaderMiddleware": 543,
 #}
 
 # Enable or disable extensions

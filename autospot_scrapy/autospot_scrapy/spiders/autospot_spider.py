@@ -17,118 +17,54 @@ class AutospotSpider(scrapy.Spider):
         self.new_cars_url = "https://autospot.ru/filters/?sort=-percent_discount&limit=12&page="
     
     def start_requests(self):
-        # Начинаем с подержанных автомобилей
+        # Начинаем с первых страниц обоих типов авто
         yield Request(
             url=self.used_cars_url + "1",
-            callback=self.parse_used_cars_list,
-            meta={'needs_token': True, 'page': 1, 'max_page': 2}
+            callback=self.parse_cars_list,
+            meta={'needs_token': True, 'page': 1, 'car_type': 'used'}
+        )
+        
+        yield Request(
+            url=self.new_cars_url + "1",
+            callback=self.parse_cars_list,
+            meta={'needs_token': True, 'page': 1, 'car_type': 'new'}
         )
     
-    def parse_used_cars_list(self, response):
+    def parse_cars_list(self, response):
         page = response.meta.get('page', 1)
-        max_page = response.meta.get('max_page', 2)
+        car_type = response.meta.get('car_type', 'new')
+        max_page = self._get_max_page(response)
+        logger.info("Detected %d pages of %s cars", max_page, car_type)
         
-        logger.info("Processing page %d of %d (used cars)", page, max_page)
+        # Обрабатываем текущую страницу
+        yield from self._process_car_list(
+            response=response,
+            page=page,
+            car_type=car_type,
+            callback=self.parse_new_car_info if car_type == 'new' else self.parse_used_car_info
+        )
         
-        # Обновляем максимальное количество страниц
-        pagination_items = response.xpath("//auto-pagination//ul/li")
-        page_numbers = []
-        for item in pagination_items:
-            text = item.xpath("text()").get("").strip()
-            if text.isdigit():
-                page_numbers.append(int(text))
-        
-        if page_numbers:
-            max_page = max(page_numbers)
-            logger.info("Detected %d pages of used cars", max_page)
-        
-        # Получаем ссылки на автомобили
-        cars_urls = response.xpath("//auto-car-card/article/div/header/h3/a/@href").getall()
-        
-        if not cars_urls:
-            logger.warning("No data found on page %d (used cars)", page)
-        else:
-            logger.info("Found %d used cars on page %d", len(cars_urls), page)
-            for url in cars_urls:
-                full_url = response.urljoin(url)
-                yield Request(
-                    url=full_url,
-                    callback=self.parse_used_car_info,
-                    meta={'needs_token': False}
-                )
-        
-        # Переходим на следующую страницу, если она есть
-        if page < max_page:
-            next_page = page + 1
-            yield Request(
-                url=self.used_cars_url + str(next_page),
-                callback=self.parse_used_cars_list,
-                meta={'needs_token': True, 'page': next_page, 'max_page': max_page}
-            )
-        elif page == max_page:
-            # После обработки всех подержанных авто переходим к новым
-            logger.info("Finished processing used cars, moving to new cars")
-            yield Request(
-                url=self.new_cars_url + "1",
-                callback=self.parse_new_cars_list,
-                meta={'needs_token': True, 'page': 1, 'max_page': 2}
-            )
-    
-    def parse_new_cars_list(self, response):
-        page = response.meta.get('page', 1)
-        max_page = response.meta.get('max_page', 2)
-        
-        logger.info("Processing page %d of %d (new cars)", page, max_page)
-        
-        # Обновляем максимальное количество страниц
-        pagination_items = response.xpath("//auto-pagination//ul/li")
-        page_numbers = []
-        for item in pagination_items:
-            text = item.xpath("text()").get("").strip()
-            if text.isdigit():
-                page_numbers.append(int(text))
-        
-        if page_numbers:
-            max_page = max(page_numbers)
-            logger.info("Detected %d pages of new cars", max_page)
-        
-        # Получаем ссылки на автомобили
-        cars_urls = response.xpath("//auto-car-card/article/div/header/h3/a/@href").getall()
-        
-        if not cars_urls:
-            logger.warning("No data found on page %d (new cars)", page)
-        else:
-            logger.info("Found %d new cars on page %d", len(cars_urls), page)
-            for url in cars_urls:
-                full_url = response.urljoin(url)
-                yield Request(
-                    url=full_url,
-                    callback=self.parse_new_car_info,
-                    meta={'needs_token': False}
-                )
-        
-        # Переходим на следующую страницу, если она есть
-        if page < max_page:
-            next_page = page + 1
-            yield Request(
-                url=self.new_cars_url + str(next_page),
-                callback=self.parse_new_cars_list,
-                meta={'needs_token': True, 'page': next_page, 'max_page': max_page}
+        # Запускаем параллельный парсинг остальных страниц
+        if page == 1:
+            base_url = self.new_cars_url if car_type == 'new' else self.used_cars_url
+            yield from self._schedule_pagination(
+                base_url=base_url,
+                max_page=max_page,
+                callback=self.parse_cars_list,
+                meta={'car_type': car_type}
             )
     
     def parse_used_car_info(self, response):
         logger.info("Processing used car: %s", response.url)
         
-        # Извлекаем JSON из скрипта
         script_data = self._extract_script_data(response)
         if not script_data:
             logger.error("Failed to extract script data for %s", response.url)
             return
         
-        # Извлекаем данные об автомобиле
-        car_data = self._extract_used_car_data(script_data)
+        car_data = self._extract_car_data(script_data, car_type='used')
         characteristics = self._extract_characteristics(script_data)
-        options = self._extract_used_car_options(script_data)
+        options = self._extract_car_options(script_data, car_type='used')
         photos = self._extract_photos(response)
         
         # Создаем элемент
@@ -152,17 +88,15 @@ class AutospotSpider(scrapy.Spider):
     def parse_new_car_info(self, response):
         logger.info("Processing new car: %s", response.url)
         
-        # Извлекаем JSON из скрипта
         script_data = self._extract_script_data(response)
         if not script_data:
             logger.error("Failed to extract script data for %s", response.url)
             return
         
-        # Извлекаем данные об автомобиле
-        car_data = self._extract_new_car_data(script_data)
+        car_data = self._extract_car_data(script_data, car_type='new')
         price = self._extract_price_data(script_data)
         characteristics = self._extract_characteristics(script_data)
-        options = self._extract_new_car_options(script_data)
+        options = self._extract_car_options(script_data, car_type='new')
         dealers_list = self._extract_dealers(script_data)
         photos = self._extract_photos(response)
         
@@ -203,18 +137,12 @@ class AutospotSpider(scrapy.Spider):
             logger.exception("Error extracting data from script: %s", e)
             return None
 
-    def _extract_used_car_data(self, script_data):
+    def _extract_car_data(self, script_data, car_type='new'):
+        """Извлекает основные данные об автомобиле"""
+        api_path = 'api.autospot.ru/rest/v2/used-car/cars' if car_type == 'used' else 'api.autospot.ru/rest/car/base-info'
         car_key = next(
             (key for key in script_data.keys() 
-            if 'api.autospot.ru/rest/v2/used-car/cars' in key),
-            None
-        )
-        return script_data.get(car_key, {}).get('body', {}) if car_key else {}
-
-    def _extract_new_car_data(self, script_data):
-        car_key = next(
-            (key for key in script_data.keys() 
-            if 'api.autospot.ru/rest/car/base-info' in key),
+            if api_path in key),
             None
         )
         return script_data.get(car_key, {}).get('body', {}) if car_key else {}
@@ -237,18 +165,12 @@ class AutospotSpider(scrapy.Spider):
         )
         return script_data.get(characteristics_key, {}).get('body', {}) if characteristics_key else {}
 
-    def _extract_used_car_options(self, script_data):
+    def _extract_car_options(self, script_data, car_type='new'):
+        """Извлекает опции автомобиля"""
+        api_path = 'api.autospot.ru/rest/used-car/options-two-column' if car_type == 'used' else 'api.autospot.ru/rest/car/all-options-two-column'
         options_key = next(
             (key for key in script_data.keys() 
-            if 'api.autospot.ru/rest/used-car/options-two-column' in key),
-            None
-        )
-        return self._process_options(script_data, options_key)
-
-    def _extract_new_car_options(self, script_data):
-        options_key = next(
-            (key for key in script_data.keys() 
-            if 'api.autospot.ru/rest/car/all-options-two-column' in key),
+            if api_path in key),
             None
         )
         return self._process_options(script_data, options_key)
@@ -294,7 +216,48 @@ class AutospotSpider(scrapy.Spider):
         all_photos = response.xpath("//auto-gallery//img/@src | //auto-gallery-image//img/@src").getall()
         for photo_url in all_photos:
             if "0x320" in photo_url:
-                clean_url = photo_url.split('?')[0]
+                # Заменяем 0x320 на 0x0 в URL
+                clean_url = photo_url.split('?')[0].replace('0x320', '0x0')
                 if clean_url not in photos:
                     photos.append(clean_url)
         return photos
+
+    def _get_max_page(self, response):
+        """Определяет максимальное количество страниц"""
+        pagination_items = response.xpath("//auto-pagination//ul/li")
+        page_numbers = []
+        for item in pagination_items:
+            text = item.xpath("text()").get("").strip()
+            if text.isdigit():
+                page_numbers.append(int(text))
+        return max(page_numbers) if page_numbers else 1
+
+    def _process_car_list(self, response, page, car_type, callback):
+        """Обрабатывает список автомобилей на странице"""
+        cars_urls = response.xpath("//auto-car-card/article/div/header/h3/a/@href").getall()
+        
+        if not cars_urls:
+            logger.warning("No data found on page %d (%s cars)", page, car_type)
+            return
+        
+        logger.info("Found %d %s cars on page %d", len(cars_urls), car_type, page)
+        for url in cars_urls:
+            yield Request(
+                url=response.urljoin(url),
+                callback=callback,
+                meta={'needs_token': False}
+            )
+
+    def _schedule_pagination(self, base_url, max_page, callback, meta=None):
+        """Запускает параллельный парсинг страниц"""
+        meta = meta or {}
+        meta.update({'needs_token': True})
+        
+        for page_num in range(2, max_page + 1):
+            meta['page'] = page_num
+            yield Request(
+                url=base_url + str(page_num),
+                callback=callback,
+                meta=meta,
+                dont_filter=True
+            )
